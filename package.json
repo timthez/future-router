@@ -1,0 +1,19 @@
+{
+  "name": "future-router",
+  "version": "1.0.0",
+  "description": "Intuitive React-Flux Router. It allows reloading a page, backwards and forwards actions and defining routes in a separate module. Signaling a route change is very simple by either including Router.route('name_of_route',{args}) in a href attribute or invoking the action dynamically by doing Router.route(route_name,{args},true).",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "react-router",
+    "react",
+    "flux"
+  ],
+  "author": "Tim Zuercher",
+  "license": "ISC",
+  "dependencies": {
+    "jquery": "^2.1.4"
+  }
+}
