@@ -1,17 +1,10 @@
 $(document).ready(function(){
-  $('a').click(function(e){
-    e.preventDefault();
-    var href = $(this).attr("href");
-    var jsn = $.parseJSON(href);
-    changeRoute(jsn);
-
- });
   $(window).on('hashchange',function(){ 
     var jsn = urlDecode(window.location);
     if(jsn.hasOwnProperty('route')){
       func = jsn.route;
+      jsn.hasOwnProperty('args')?Router.Routes[func](jsn.args):Router.Routes[func]();
     }   
-    jsn.hasOwnProperty('args')?Router.Routes[func](jsn.args):Router.Routes[func]();
 });
 });
  
@@ -21,7 +14,7 @@ $(document).ready(function(){
       throw "No Specified Route! Please include in the href tag";
     }
     var func = 'root';
-    if(jsn.hasOwnProperty('route')){
+    if(jsn.hasOwnProperty('route') && !jsn.route.isBlank() ){
       func = jsn.route;
     }   
     if(jsn.hasOwnProperty('args')){
@@ -29,7 +22,6 @@ $(document).ready(function(){
       Router.Routes[func](args);
       window.history.pushState('','',"#/"+(func == 'root'?'':func)+'?'+$.param(args,true));
     }else{
-
       Router.Routes[func]();
       window.history.pushState('','',"#/"+(func == 'root'?'':func));
     }
@@ -41,16 +33,19 @@ $(document).ready(function(){
   route: function(route, args, execute){
     execute = execute === undefined ? false : execute
     if(!execute){
-      if(args == undefined){
-        return('{"route":"'+route+'"}');
+      if(args == undefined || $.isEmptyObject(args)){
+        return "#/"+(route == 'root'?'':route);
       }else{              
-       return('{"route":"'+route+'","args":'+JSON.stringify(args)+'}');
+       return "#/"+(route == 'root'?'':route)+'?'+$.param(args,true);
       }
     }else{
-      var jsn = $.parseJSON(Router.route(route,args));
-      changeRoute(jsn);
+      if(args == undefined || $.isEmptyObject(args)){
+        changeRoute($.parseJSON('{"route":"'+route+'"}'));
+      }else{              
+       changeRoute($.parseJSON('{"route":"'+route+'","args":'+JSON.stringify(args)+'}'));
+      }
     }
-    },
+  },
   init: function(){
     var jsn = Router.route('root');
     if(window.location.hash.length > 2){
@@ -66,9 +61,11 @@ function urlDecode(hash){
     var hash =window.location.hash.substring(2);
     var index = hash.indexOf('?');
     var func = index !== -1?hash.substring(0,index):hash;
+    func = func == "" ? "root" : func
     var args = index !== -1?hash.substring(index+1):null;
-    var dec = args ? JSON.parse(('{"' + args.replace(/&/g, '","').replace(/=/g,'":"') + '"}'),function(key, value) { return key==="" ? value : decodeURIComponent(value) }) : null
-    console.log(dec);
+    
+    var dec = args ? JSON.parse(('{"' + args.replace(/&/g, '","').replace(/=/g,'":"') + '"}').replace(/(.+)([+])(.+)/g,'$1 $3'),function(key, value) { return key==="" ? value : decodeURIComponent(value) }) : null
+    
     if(dec){
       return ({route: func,args: dec});
     }else{
